@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>gpu_planning_ros2</name>
+  <version>0.1.0</version>
+  <description>
+    ROS 2 adapter for the gpu_planning substrate-consistent planner zoo. Exposes
+    the six GPU planners (pRRTC, MIT*, MHA*, wPA*SE, STOMP, CHOMP) behind a
+    ROS 2-native plan service (gpu_planning_msgs/PlanJointPath) and ingests
+    collision geometry from gpu_planning_msgs/CollisionScene. Built on
+    common_interfaces only — no MoveIt dependency. Non-box collision primitives
+    are conservatively over-approximated to enclosing oriented bounding boxes,
+    matching the substrate's OBB collision path.
+  </description>
+  <maintainer email="wuh15@users.noreply.github.com">wuh15</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>gpu_planning_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,71 @@
+# STOMP — Stochastic Trajectory Optimization for Motion Planning
+# (gradient-free optimisation paradigm).
+#
+# The `stomp:` section keys are flattened to `stomp_<key>` and applied onto
+# prrtc.STOMPSettings by attribute name (STOMPPlanner._build_settings), while
+# `stomp_num_timesteps` / `stomp_num_rollouts_new` / `stomp_num_rollouts_old` /
+# `stomp_num_batch` also size the reusable GPU buffers (_init_buffers).
+# Defaults mirror cpp/src/planning/STOMP_settings.hh.
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml
+
+stomp:
+  # problem / trajectory shape
+  num_batch: 1
+  num_timesteps: 51
+
+  # iteration control. The solve loop breaks on WHICHEVER of num_iterations or
+  # time_limit_ms comes first, so a low iteration cap silently starves STOMP of
+  # the wall-clock budget the other planners get. The old cap of 20 finished in
+  # 12.6 ms -- about 1 % of a 1 s budget. Real MBM, 1 s, cap lifted so time is
+  # the binding constraint:
+  #   cap      Panda        Fetch        Baxter
+  #   20       0.19         0.00         0.00
+  #   time     0.69         0.06         0.07   <- shipped
+  # The cap is kept only as a runaway guard; time_limit_ms is the real bound.
+  num_iterations: 100000
+  num_iterations_after_valid: 3
+
+  # Wall-clock bound. Must be set explicitly: it is inherited from
+  # pRRTC_settings, whose default is 4000 ms, so leaving it out would quietly
+  # hand STOMP 4x the budget of every other planner in the cross-paradigm
+  # comparison. 1 s matches mitstar/mhastar/wpase. Measured 4 s vs 1 s: Panda
+  # 0.70 vs 0.69 (jitter -- STOMP converges well inside 1 s there) but Baxter
+  # 0.10 vs 0.03, so Baxter genuinely remains time-bound.
+  time_limit_ms: 1000.0
+
+  # rollout population
+  num_rollouts_new: 30
+  num_rollouts_old: 20
+
+  # cost model
+  delta_t: 0.1
+  control_cost_weight: 0.1
+  collision_cost_weight: 20.0
+  exponentiated_cost_sensitivity: 2.0
+
+  # smooth collision activation bands (m)
+  world_collision_margin: 0.02
+  self_collision_margin: 0.01
+
+  # convergence / validity
+  convergence_eps: 1.0e-4
+  collision_free_tol: 1.0e-6
+  # Matches valid_segment_length in mitstar/prrtc: every planner now checks the
+  # same predicate at the same density along an edge, so a coarser sweep cannot
+  # let one planner accept a path another would reject.
+  collision_check_step: 0.025
+
+  # exploration noise multiplier. Applied as a SCALAR: the same absolute
+  # config-space stddev on every joint. Scaling it per-DoF by joint travel
+  # (ppln::make_dof_scale, as the search planners' lattice does) was implemented
+  # and measured, and it HURTS -- Fetch 0.06 -> 0.01, Baxter 0.07 -> 0.03, Panda
+  # unchanged. It shrinks the noise on Fetch's 0.386 m prismatic torso by ~10x
+  # relative to its 6.3 rad revolute joints, suppressing exploration of exactly
+  # the joint it was meant to help. Reverted; do not reintroduce without a
+  # measurement that contradicts this.
+  noise_scale: 1.0

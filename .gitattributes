@@ -1,0 +1,9 @@
+# The tree is developed and built on Linux; keep LF in the working copy on
+# every platform so CUDA/Python sources are not rewritten with CRLF.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.gz  binary
+*.pkl binary

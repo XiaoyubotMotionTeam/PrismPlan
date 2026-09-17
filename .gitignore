@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# --- CUDA / CMake build tree ---
+code/gpu_planning/cpp/build/
+code/gpu_planning/cpp/build*/
+build/
+*.so
+*.a
+*.o
+
+# --- editor / tooling local state ---
+.vscode/
+.idea/
+
+# --- generated benchmark inputs and outputs ---
+code/gpu_planning/data/
+code/gpu_planning/results/
+
+# --- local secrets and environment overrides ---
+.env
+.env.*
+!.env.example

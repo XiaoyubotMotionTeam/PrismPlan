@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="680" viewBox="0 0 1600 680" role="img" aria-labelledby="title desc">
+  <title id="title">PrismPlan project workflow</title>
+  <desc id="desc">A four-stage workflow from one planning request, through six planners and a shared GPU collision-kinematics substrate, to a common validated trajectory result.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#20262d"/></marker>
+    <style>
+      .title{font:700 40px 'DejaVu Sans',Arial,sans-serif;fill:#111418}.subtitle{font:400 20px 'DejaVu Sans',Arial,sans-serif;fill:#59636e}
+      .step{font:700 15px 'DejaVu Sans',Arial,sans-serif;letter-spacing:1.7px;fill:#52606d}.heading{font:700 25px 'DejaVu Sans',Arial,sans-serif;fill:#111418}
+      .body{font:500 18px 'DejaVu Sans',Arial,sans-serif;fill:#20262d}.small{font:400 15px 'DejaVu Sans',Arial,sans-serif;fill:#5f6b76}
+      .card{fill:#fff;stroke:#cbd3da;stroke-width:2}.inner{fill:#f4f6f8;stroke:#dde2e6;stroke-width:1.5}.arrow{fill:none;stroke:#20262d;stroke-width:2.5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="680" fill="#fff"/>
+  <text x="60" y="66" class="title">PrismPlan workflow</text>
+  <text x="60" y="101" class="subtitle">The planning strategy changes. The robot model, collision geometry, request, and result contract stay fixed.</text>
+  <line x1="60" y1="130" x2="1540" y2="130" stroke="#20262d" stroke-width="2"/>
+
+  <rect class="card" x="60" y="175" width="280" height="465" rx="14"/><rect x="60" y="175" width="280" height="7" fill="#20262d"/>
+  <text x="84" y="217" class="step">01 · INPUT</text><text x="84" y="258" class="heading">One request</text>
+  <rect class="inner" x="84" y="290" width="232" height="73" rx="9"/><text x="104" y="320" class="body">Robot model</text><text x="104" y="346" class="small">Panda · Fetch · Baxter</text>
+  <rect class="inner" x="84" y="378" width="232" height="73" rx="9"/><text x="104" y="408" class="body">Start + goal</text><text x="104" y="434" class="small">joint-space states</text>
+  <rect class="inner" x="84" y="466" width="232" height="73" rx="9"/><text x="104" y="496" class="body">Obstacle world</text><text x="104" y="522" class="small">oriented bounding boxes</text>
+  <text x="84" y="590" class="small">One API · one time budget</text>
+
+  <rect class="card" x="420" y="175" width="350" height="465" rx="14"/><rect x="420" y="175" width="350" height="7" fill="#20262d"/>
+  <text x="444" y="217" class="step">02 · PLAN</text><text x="444" y="258" class="heading">Six planners</text>
+  <rect x="444" y="290" width="302" height="82" rx="9" fill="#eaf3fc" stroke="#8dbce8" stroke-width="1.5"/><rect x="444" y="290" width="8" height="82" rx="4" fill="#1769c2"/>
+  <text x="470" y="321" class="body">Sampling</text><text x="470" y="350" class="small">pRRTC · MIT*</text>
+  <rect x="444" y="389" width="302" height="82" rx="9" fill="#fdf1e8" stroke="#e8af82" stroke-width="1.5"/><rect x="444" y="389" width="8" height="82" rx="4" fill="#d96712"/>
+  <text x="470" y="420" class="body">Search</text><text x="470" y="449" class="small">MHA* · wPA*SE</text>
+  <rect x="444" y="488" width="302" height="82" rx="9" fill="#e9f7f2" stroke="#89cdb5" stroke-width="1.5"/><rect x="444" y="488" width="8" height="82" rx="4" fill="#11966a"/>
+  <text x="470" y="519" class="body">Optimization</text><text x="470" y="548" class="small">STOMP · CHOMP</text><text x="444" y="604" class="small">Different algorithms, common calls</text>
+
+  <rect class="card" x="850" y="175" width="420" height="465" rx="14"/><rect x="850" y="175" width="420" height="7" fill="#20262d"/>
+  <text x="874" y="217" class="step">03 · ACCELERATE</text><text x="874" y="258" class="heading">Shared GPU substrate</text>
+  <rect class="inner" x="874" y="290" width="372" height="73" rx="9"/><text x="896" y="320" class="body">Runtime forward kinematics</text><text x="896" y="346" class="small">batched link transforms</text>
+  <rect class="inner" x="874" y="378" width="178" height="92" rx="9"/><text x="896" y="410" class="body">Sphere model</text><text x="896" y="438" class="small">robot geometry</text>
+  <rect class="inner" x="1068" y="378" width="178" height="92" rx="9"/><text x="1090" y="410" class="body">OBB collision</text><text x="1090" y="438" class="small">world predicate</text>
+  <rect class="inner" x="874" y="485" width="372" height="85" rx="9"/><text x="896" y="516" class="body">Planner-specific reduction</text><text x="896" y="544" class="small">Boolean · clearance · cost + gradient</text>
+  <text x="874" y="604" class="small">Same FK and collision definition</text>
+
+  <rect class="card" x="1350" y="175" width="190" height="465" rx="14"/><rect x="1350" y="175" width="190" height="7" fill="#20262d"/>
+  <text x="1374" y="217" class="step">04 · OUTPUT</text><text x="1374" y="258" class="heading">One result</text>
+  <rect class="inner" x="1374" y="290" width="142" height="90" rx="9"/><text x="1393" y="323" class="body">Trajectory</text><text x="1393" y="351" class="small">joint states</text>
+  <rect class="inner" x="1374" y="395" width="142" height="90" rx="9"/><text x="1393" y="428" class="body">Metrics</text><text x="1393" y="456" class="small">time · status</text>
+  <rect class="inner" x="1374" y="500" width="142" height="90" rx="9"/><text x="1393" y="533" class="body">Playback</text><text x="1393" y="561" class="small">Isaac Sim</text>
+  <text x="1374" y="615" class="small">Validate + compare</text>
+
+  <path class="arrow" d="M340 407.5H404"/><path class="arrow" d="M770 407.5H834"/><path class="arrow" d="M1270 407.5H1334"/>
+</svg>

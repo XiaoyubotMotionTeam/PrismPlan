@@ -1,0 +1,56 @@
+# wPA*SE — weighted Parallel A* for Slow Expansions (search paradigm).
+#
+# CPU parallel-expansion weighted-A* over a joint lattice: each round expands a
+# set of mutually-independent OPEN states (PA*SE independence rule) whose
+# successor edges are all confirmed on the GPU in one batch. The `wpase:`
+# section keys are flattened to `wpase_<key>` and applied onto
+# prrtc.WPASESettings by attribute name (WPASEPlanner._build_settings).
+# Defaults mirror cpp/src/planning/WPASE_settings.hh (note the C++ ctor
+# overrides the base pRRTC defaults: time_limit_ms=1000, granularity=16,
+# collision_margin=0). Suboptimality is bounded by heuristic_w.
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml
+
+wpase:
+  # weighted-A* heuristic inflation (= bounded suboptimality factor w)
+  heuristic_w: 5.0
+
+  # parallel expansion width: max mutually-independent states expanded per round
+  num_parallel: 4
+
+  # GPU batched edge evaluation
+  batch_edges: 256
+
+  # joint lattice discretisation, in NORMALISED units: joint i gets
+  # value * scale[i] with scale[i] = joint i's travel / the robot's mean travel
+  # (cpp/src/planning/dof_scale.hh). On a homogeneous arm scale[i] ~ 1 so these
+  # equal the old scalar radians; on Fetch the 0.386 m prismatic torso finally
+  # gets a step proportional to its own range instead of 26 % of it.
+  # Measured on real MBM at a 1 s budget with the tight goal radius below
+  # (success rate vs step): Panda 0.71 @0.10 / 0.93 @0.35 / 0.93 @0.50 / 0.94
+  # @0.70; Fetch 0.01 / 0.34 / 0.54 / 0.47; Baxter 0.00 / 0.03 / 0.17 / 0.07.
+  # 0.50 is the peak on the two hard robots. A finer lattice is not "more
+  # careful", it is unreachable: normalisation makes a full-travel move cost
+  # mean_range/step steps on EVERY joint, so 0.10 needs ~42 steps per axis and
+  # an 8-14 DoF search cannot cover that in 1 s. Path cost also improves with
+  # the coarser lattice (Panda 9.37 -> 8.32), so nothing is being traded away.
+  lattice_step: 0.50   # +/- step per joint
+  grid_cell: 0.25      # node-table dedup cell
+  goal_radius: 0.15    # L2 tolerance, used as-is (no step-proportional floor)
+
+  # goal connection, in multiples of lattice_step (0 disables)
+  goal_connect_steps: 8.0
+
+  # edge evaluation
+  check_self: true
+  granularity: 32      # fallback only; ignored while edge_resolution > 0
+  # config-space spacing between checks along an edge. Replaces granularity, so
+  # a long goal-connection edge gets proportionately more checks than a short
+  # lattice edge instead of the same fixed count.
+  edge_resolution: 0.025
+  collision_margin: 0.0
+  time_limit_ms: 1000.0

@@ -1,0 +1,36 @@
+# pRRTC — GPU-parallel RRT-Connect (sampling paradigm).
+#
+# Top-level keys are consumed by SubstratePlannerBase (time parameterisation).
+# The `prrtc:` section is promoted verbatim onto prrtc.Settings — its keys are
+# the plain C++ pRRTC_settings field names (see cpp/src/planning/pRRTC_settings.hh).
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml   # default: bundled panda
+
+prrtc:
+  # sampling / iteration budget
+  max_samples: 1000000
+  max_iters: 1000000
+  time_limit_ms: 4000.0
+  num_new_configs: 600
+  granularity: 16
+  range: 0.5
+
+  # tree-balance strategy (0=none, 1/2=balanced)
+  balance: 1
+  tree_ratio: 0.5
+
+  # dynamic domain
+  dynamic_domain: true
+  dd_alpha: 0.0001
+  dd_radius: 4.0
+  dd_min_radius: 1.0
+
+  # post-processing shortcut
+  shortcut_path: false
+  valid_segment_length: 0.025
+  collision_margin: 0.0
+  shortcut_collision_margin: 0.0005

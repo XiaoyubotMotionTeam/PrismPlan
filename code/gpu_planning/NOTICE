@@ -1,0 +1,14 @@
+PrismPlan
+Copyright 2026 xiaoyu
+
+This distribution includes and modifies components originating from pRRTC:
+https://github.com/CoMMALab/pRRTC
+
+Selected collision structures are adapted from VAMP and are identified by
+source references in the affected headers:
+https://github.com/KavrakiLab/vamp
+
+The hosted planning algorithms retain their original scholarly provenance:
+pRRTC, MIT*/the BIT* family, MHA*, wPA*SE, STOMP, and CHOMP. Consult the
+project README and source comments for implementation scope. This NOTICE is
+informational and does not modify the Apache License 2.0 in LICENSE.

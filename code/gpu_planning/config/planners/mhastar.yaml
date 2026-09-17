@@ -1,0 +1,99 @@
+# MHA* — Multi-Heuristic A* (search paradigm).
+#
+# CPU shared-multi-heuristic A* over a joint lattice with GPU-batched lazy edge
+# evaluation. The `mhastar:` section keys are flattened to `mhastar_<key>` and
+# applied onto prrtc.MHAStarSettings by attribute name
+# (MHAStarPlanner._build_settings). Defaults mirror
+# cpp/src/planning/MHAStar_settings.hh (note the C++ ctor overrides the base
+# pRRTC defaults: time_limit_ms=1000, granularity=16, collision_margin=0).
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml
+
+mhastar:
+  # multi-heuristic weights (SBPL MHAPlanner semantics)
+  w1: 5.0          # inflation_eps
+  w2: 2.0          # anchor_eps
+  # # inadmissible heuristics. mhastar_solve.cu defines only TWO distinct ones
+  # (odd qi inflates proximal joints, even qi distal), so 2 is the useful maximum;
+  # 3+ would just duplicate. Measured eager @0.50, 1 s, goal_radius 0.15:
+  #   num_inad  Panda        Fetch        Baxter
+  #   0         0.86         0.34         0.03
+  #   1         0.84         0.37         0.23
+  #   2         0.83         0.41         0.27   <- shipped
+  # 2 wins on the two hard robots and costs 0.03 on Panda, where the budget is
+  # not binding. Path cost moves the other way (Panda 7.77 -> 9.19 vs the earlier
+  # dominated-heuristic build) -- that is the honest price of a heuristic that is
+  # allowed to overestimate.
+  num_inad: 2
+
+  # queue selection: 0 = RoundRobin, 1 = BestKey
+  queue_sel: 0
+
+  # GPU batched edge evaluation
+  batch_edges: 256
+
+  # Edge-evaluation policy. false = eager: confirm ALL 2*dim successor edges of an
+  # expanded state in one GPU call, then insert only the survivors with their true
+  # cost. true = the SBPL insertLazyList variant (a state's incoming edge is
+  # confirmed only when it is popped), kept available for reference comparison.
+  # Eager is both what the paper specifies ("flushes ... the successors of one
+  # expansion") and measured better: real MBM, 1 s, goal_radius 0.15 fixed,
+  # Panda @0.50 0.43 -> 0.91 (cost 8.42 -> 7.77), Fetch @0.50 0.00 -> 0.21.
+  # Laziness only pays when most edges are valid; the lattice's true invalid rate
+  # is ~21 %, but lazy probing verifies the most attractive-looking edges first --
+  # exactly the ones cutting corners through obstacles -- so it observes ~60 % and
+  # most keys on OPEN are optimistic fiction.
+  lazy: false
+
+  # joint lattice discretisation, in NORMALISED units: joint i gets
+  # value * scale[i] with scale[i] = joint i's travel / the robot's mean travel
+  # (cpp/src/planning/dof_scale.hh). On a homogeneous arm scale[i] ~ 1 so these
+  # equal the old scalar radians; on Fetch the 0.386 m prismatic torso finally
+  # gets a step proportional to its own range instead of 26 % of it.
+  # Kept IDENTICAL to wpase.yaml on purpose: the lattice is the shared discretised
+  # action set, not a planner-internal knob, so both search planners must solve the
+  # same discretised problem for the cross-paradigm comparison to mean anything.
+  # Any remaining gap is then attributable to batching policy alone.
+  # Re-swept AFTER the inadmissible-heuristic fix (real MBM, 1 s, goal_radius 0.15,
+  # eager, num_inad=2). Success vs step, mean cost in brackets:
+  #   step   Panda          Fetch          Baxter
+  #   0.35   0.87 (9.14)    0.31 (13.39)   0.23 (16.31)
+  #   0.50   0.83 (9.19)    0.43 (12.78)   0.27 (17.19)   <- shipped
+  #   0.70   0.90 (9.04)    0.41 (12.54)   0.03 (20.03)
+  #   0.90   0.87 (9.64)    0.39 (13.44)   0.03 (19.73)
+  # 0.50 is Fetch's and Baxter's peak and costs only 0.07 on Panda. Baxter falls
+  # off a cliff above 0.50 (0.27 -> 0.03), which pins the default. Run-to-run
+  # jitter at a fixed wall-clock budget is about +/-1 problem, so do not read
+  # differences below ~0.03 as real.
+  #
+  # Where the residual Baxter failures actually sit (MHASTAR_DEBUG=1): they burn
+  # the full 1 s, reaching ~3000-3900 expansions with minh down to 7-24 % of h0,
+  # so the search DOES arrive near the goal. It then cannot finish: goal-connect
+  # is offered (connect radius 4.0 >> the ~0.36 residual) but the straight line
+  # is in collision, and one 0.50 lattice move overshoots the 0.15 tolerance.
+  # That is a single-resolution limitation, not a tuning failure -- a coarse
+  # lattice is needed to travel and a fine one to land.
+  # MHA*'s own optimum sits coarser than wPA*SE's because it is ~5x less
+  # substrate-efficient: one serial expansion offers only 2*dim edges per launch
+  # (28 on Baxter => 22.5 us/edge, GPU ~99 % idle) whereas a 256-edge batch costs
+  # 4.05 us/edge, so it must compensate with a shallower search.
+  lattice_step: 0.50   # +/- step per joint
+  grid_cell: 0.25      # node-table dedup cell
+  goal_radius: 0.15    # L2 tolerance, used as-is (no step-proportional floor)
+
+  # goal connection, in multiples of lattice_step (0 disables)
+  goal_connect_steps: 8.0
+
+  # edge evaluation
+  check_self: true
+  granularity: 32      # fallback only; ignored while edge_resolution > 0
+  # config-space spacing between checks along an edge. Replaces granularity, so
+  # a long goal-connection edge gets proportionately more checks than a short
+  # lattice edge instead of the same fixed count.
+  edge_resolution: 0.025
+  collision_margin: 0.0
+  time_limit_ms: 1000.0

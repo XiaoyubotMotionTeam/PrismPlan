@@ -1,0 +1,17 @@
+# Plan a joint-space start -> goal path with one of the six substrate planners.
+# ROS 2-native: uses only common_interfaces types, no MoveIt dependency.
+
+string robot_id
+# One of: prrtc | mitstar | mhastar | wpase | stomp | chomp. Empty = node default.
+string planner_id
+# Start and goal configurations. 'name' gives joint order; 'position' the values.
+sensor_msgs/JointState start
+sensor_msgs/JointState goal
+float64 allowed_planning_time
+float64 max_velocity_scaling_factor
+float64 max_acceleration_scaling_factor
+---
+bool success
+string status
+trajectory_msgs/JointTrajectory trajectory
+float64 planning_time

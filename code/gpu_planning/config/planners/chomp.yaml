@@ -1,0 +1,63 @@
+# CHOMP — Covariant Hamiltonian Optimization for Motion Planning
+# (gradient-based optimisation paradigm).
+#
+# The `chomp:` section keys are flattened to `chomp_<key>` and applied onto
+# prrtc.CHOMPSettings by attribute name (CHOMPPlanner._build_settings);
+# `chomp_num_timesteps` also sizes the reusable GPU buffers (_init_buffers).
+# Defaults mirror cpp/src/planning/CHOMP_settings.hh.
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml
+
+chomp:
+  # trajectory discretisation
+  num_timesteps: 51
+
+  # iteration control (gradient descent → more steps than STOMP). Kept as a
+  # runaway guard only; time_limit_ms is the real bound, and the loop breaks on
+  # whichever comes first.
+  #
+  # Unlike STOMP, CHOMP gains NOTHING from the budget: real MBM at 1 s with the
+  # cap lifted from 100 to 100000 measured 3/70 Panda, 0/70 Fetch, 0/30 Baxter --
+  # bit-identical to the capped run. It is deterministic gradient descent from a
+  # straight-line seed with no random restarts, so once it reaches a local
+  # minimum extra iterations cannot move it. That is a property of the algorithm,
+  # not a tuning failure, and it is the honest reason CHOMP is the weakest of the
+  # six planners here. Report it rather than hiding it behind a bigger budget.
+  num_iterations: 100000
+  num_iterations_after_valid: 5
+
+  # Wall-clock bound. Must be set explicitly: inherited from pRRTC_settings,
+  # whose default is 4000 ms, so omitting it would hand CHOMP 4x the budget of
+  # every other planner. 1 s matches mitstar/mhastar/wpase/stomp.
+  time_limit_ms: 1000.0
+
+  # covariant update / metric. step_size is applied as a SCALAR on every joint.
+  # Scaling it per-DoF by joint travel (ppln::make_dof_scale) was implemented and
+  # measured: success unchanged (3/70, 0/70, 0/30) with only a cost change on the
+  # 3 solved Panda problems (2.575e+05 -> 2.127e+05) -- far too small a sample to
+  # justify it, and the same change measurably hurts STOMP. Reverted.
+  step_size: 0.3
+  smoothness_weight: 1.0
+  collision_cost_weight: 20.0
+
+  # finite-difference obstacle gradient
+  fd_epsilon: 1.0e-3
+
+  # smooth collision activation bands (m)
+  world_collision_margin: 0.02
+  self_collision_margin: 0.01
+
+  # cost-matrix time step (for R; != output_dt)
+  delta_t: 0.1
+
+  # convergence / validity
+  convergence_eps: 1.0e-4
+  collision_free_tol: 1.0e-6
+  # Matches valid_segment_length in mitstar/prrtc: every planner now checks the
+  # same predicate at the same density along an edge, so a coarser sweep cannot
+  # let one planner accept a path another would reject.
+  collision_check_step: 0.025

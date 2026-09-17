@@ -1,0 +1,58 @@
+# MIT* — anytime asymptotically-optimal sampling planner.
+#
+# The `mitstar:` section keys are flattened to `mitstar_<key>` and read by
+# MITStarPlanner._build_settings / _init_buffers. Field defaults mirror
+# cpp/src/planning/MITStar_settings.hh.
+
+# --- shared: time parameterisation / robot asset ---
+output_dt: 0.02
+default_max_velocity: 1.0
+default_max_acceleration: 2.0
+# robot_asset: config/robots/panda.yaml
+
+mitstar:
+  # batch / iteration control
+  # 64 measured 0.74 success on the 70-problem Panda VAMP set vs 0.53 at 512
+  # (CPU OMPL MITstar reference: 0.79). See tools/mitstar_sweep.py.
+  batch_size: 64
+  time_limit_ms: 1000.0
+  early_exit_ms: 0.0
+
+  # adaptive batch size
+  adaptive_batch: true
+  min_batch_size: 32
+
+  # connectivity (k-NN / RGG)
+  eta_knn: 1.001
+  gamma_rgg: 2.0
+  max_neighbors: 32
+
+  # reverse / forward search
+  m_reverse_eval: 128
+  m_forward_eval: 512
+  initial_sparse_factor: 2.0
+  initial_suboptimality: 1.0e+10
+  use_eis: true
+
+  # collision-check resolution
+  valid_segment_length: 0.025
+  collision_margin: 0.0
+
+  # ESDF clearance cost (0 = disabled → pure L2)
+  clearance_weight: 0.0
+  clearance_epsilon: 0.005
+  max_clearance_penalty: 5.0
+
+  # graph capacity. This is a hard GPU buffer bound (adjacency =
+  # max_nodes * max_edges_per_node * 4 B, so 200000 costs 25.6 MB), and hitting
+  # it ENDS the solve regardless of time_limit_ms -- the same class of silent
+  # non-time termination that starved STOMP/CHOMP of their budget. At 50000 a
+  # nominal 2 s Panda run actually stopped at a 1211 ms median; at 200000 it runs
+  # to 2013 ms, i.e. genuinely time-bound. Success and cost are unchanged
+  # (56/70 both, cost 7.061 vs 7.08), so this is purely about making the
+  # equal-budget comparison honest, not about buying success.
+  max_nodes: 200000
+  max_edges_per_node: 32
+
+  # post-processing shortcut
+  shortcut_path: true
