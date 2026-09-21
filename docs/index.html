@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrismPlan — A Shared GPU Substrate for Motion Planning Across Paradigms</title>
+<meta name="description" content="PrismPlan runs six motion planners — pRRTC, MIT*, MHA*, wPA*SE, STOMP, and CHOMP — on one shared GPU collision and forward-kinematics substrate, enabling backend-fixed comparison of sampling-, search-, and optimization-based planning on Panda, Fetch, and Baxter.">
+<meta name="author" content="Hong Wu, ChaoXuan Liu, ShuJie Wang">
+<link rel="canonical" href="https://xiaoyubotmotionteam.github.io/PrismPlan/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PrismPlan">
+<meta property="og:title" content="PrismPlan — A Shared GPU Substrate for Motion Planning Across Paradigms">
+<meta property="og:description" content="Six motion planners across sampling, search, and optimization on one shared GPU collision–kinematics substrate. Backend-fixed benchmarking on 800 MotionBenchMaker Panda problems.">
+<meta property="og:url" content="https://xiaoyubotmotionteam.github.io/PrismPlan/">
+<meta property="og:image" content="https://xiaoyubotmotionteam.github.io/PrismPlan/assets/prismplan-cover.png">
+<meta property="og:image:alt" content="PrismPlan — a shared GPU substrate for motion planning across paradigms">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PrismPlan — A Shared GPU Substrate for Motion Planning Across Paradigms">
+<meta name="twitter:description" content="Six motion planners across sampling, search, and optimization on one shared GPU collision–kinematics substrate.">
+<meta name="twitter:image" content="https://xiaoyubotmotionteam.github.io/PrismPlan/assets/prismplan-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 27 H3 Z' fill='none' stroke='%236366f1' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "PrismPlan",
+  "alternateName": "PrismPlan: A Shared GPU Substrate for Motion Planning Across Paradigms",
+  "description": "PrismPlan exposes six motion planners (pRRTC, MIT*, MHA*, wPA*SE, STOMP, CHOMP) through one runtime robot interface and reduces their collision and forward-kinematics workloads onto shared batched GPU primitives, enabling backend-fixed cross-paradigm comparison.",
+  "codeRepository": "https://github.com/XiaoyubotMotionTeam/PrismPlan",
+  "url": "https://xiaoyubotmotionteam.github.io/PrismPlan/",
+  "programmingLanguage": ["C++", "CUDA", "Python"],
+  "runtimePlatform": "Linux, NVIDIA CUDA",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "applicationCategory": "Robotics motion planning",
+  "keywords": "motion planning, GPU, CUDA, sampling-based planning, heuristic search, trajectory optimization, pRRTC, MHA*, STOMP, CHOMP, MotionBenchMaker, Isaac Sim, Franka Panda, Fetch, Baxter",
+  "image": "https://xiaoyubotmotionteam.github.io/PrismPlan/assets/prismplan-cover.png",
+  "author": [
+    {"@type": "Person", "name": "Hong Wu"},
+    {"@type": "Person", "name": "ChaoXuan Liu"},
+    {"@type": "Person", "name": "ShuJie Wang"}
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./">PrismPlan</a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#results">Results</a>
+      <a href="#demos">Demos</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="benchmark.html">Benchmark</a>
+      <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <h1>A shared GPU substrate for motion planning across paradigms</h1>
+    <p class="lede">PrismPlan exposes six planners through one runtime robot interface and reduces their collision and forward-kinematics workloads onto shared batched GPU primitives — so cross-paradigm comparisons measure planners, not backends.</p>
+    <div class="badges">
+      <span class="badge">CUDA / C++17</span>
+      <span class="badge">Python API</span>
+      <span class="badge">ROS 2 node</span>
+      <span class="badge">Apache-2.0</span>
+    </div>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/XiaoyubotMotionTeam/PrismPlan">View on GitHub</a>
+      <a class="btn btn-ghost" href="#quickstart">Get started</a>
+      <a class="btn btn-ghost" href="benchmark.html">Benchmark notes</a>
+    </div>
+  </div>
+
+  <div class="cover">
+    <img src="assets/prismplan-cover.png" width="1600" height="900"
+         alt="PrismPlan — a shared GPU substrate for motion planning across paradigms">
+  </div>
+
+  <section id="highlights">
+    <h2>Highlights</h2>
+    <p class="sub">One substrate, three paradigms, six first-class planners.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>One substrate, three paradigms</h3>
+        <p>Sampling, search, and optimization share the same per-sphere geometry and runtime kinematics substrate.</p>
+      </div>
+      <div class="card">
+        <h3>Six first-class planners</h3>
+        <p>pRRTC, MIT*, MHA*, wPA*SE, STOMP, and CHOMP use a common problem description and result interface.</p>
+      </div>
+      <div class="card">
+        <h3>Runtime robot models</h3>
+        <p>The same planner binaries run Panda (7&nbsp;DoF), Fetch (8&nbsp;DoF), and a whole-body Baxter composite (14&nbsp;DoF) without planner-specific recompilation.</p>
+      </div>
+      <div class="card">
+        <h3>Backend-fixed benchmarking</h3>
+        <p>Every planner receives the same start/goal pair, OBB scene, and collision model; <code>--budget-ms</code> sets one wall-clock budget for all six.</p>
+      </div>
+      <div class="card">
+        <h3>Simulation-ready outputs</h3>
+        <p>Saved trajectories replay in Isaac Sim; the repository ships reviewed multi-scene demos.</p>
+      </div>
+      <div class="card">
+        <h3>Reproducible protocol</h3>
+        <p>The runner records the requested budget in <code>summary.config.budget_ms</code>, and provenance for the reference runs is documented.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <p class="sub">A shared planning request flows through six planners and one GPU collision–kinematics substrate.</p>
+    <figure>
+      <img src="assets/prismplan-architecture.svg" width="1000" height="560"
+           alt="PrismPlan workflow from a shared planning request through six planners and the common GPU collision-kinematics substrate to validation and Isaac Sim playback">
+    </figure>
+    <p>All planners share the runtime FK and per-sphere collision geometry. Sampling and search reduce it to an any-collision predicate; the anytime sampler uses a minimum-clearance reduction; STOMP and CHOMP use summed-hinge costs and gradients built from the same geometry. This distinction is intentional: an optimizer needs a graded signal, while a feasibility planner needs a Boolean decision.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Planner</th><th>Paradigm</th><th>Execution model</th><th>Practical role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>pRRTC</td><td>sampling</td><td>GPU-parallel tree extension</td><td>High feasibility and high-dimensional robustness</td></tr>
+          <tr><td>MIT*</td><td>anytime-optimal sampling</td><td>GPU collision/FK primitives</td><td>Trades the time budget for shorter paths</td></tr>
+          <tr><td>MHA*</td><td>heuristic search</td><td>CPU open lists, GPU batched edge checks</td><td>Multiple complementary heuristics</td></tr>
+          <tr><td>wPA*SE</td><td>parallel bounded-suboptimal search</td><td>CPU search, GPU batched edge checks</td><td>Low median latency and a suboptimality bound</td></tr>
+          <tr><td>STOMP</td><td>derivative-free optimization</td><td>GPU-batched rollouts and costs</td><td>Local trajectory refinement without gradients</td></tr>
+          <tr><td>CHOMP</td><td>gradient-based optimization</td><td>Shared differentiable obstacle cost</td><td>Smooth local optimization from a useful seed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>MHA* and wPA*SE are hybrid CPU/GPU planners, not fully GPU-resident search implementations.</p>
+  </section>
+
+  <section id="results">
+    <h2>Results at a glance</h2>
+    <p class="sub">800 MotionBenchMaker Panda problems · one RTX 3060 · an equal 2&nbsp;s wall-clock budget per planner and problem.</p>
+    <p>Fifteen requests have a goal already in collision; the overall success denominator retains them, while “feasible success” excludes them. The figures use the paper's <code>mbm_800_flag</code> run; see <a href="benchmark.html">benchmark provenance and reproduction</a>.</p>
+    <figure>
+      <img src="assets/results/mbm_cross_paradigm.png" width="1200" height="520"
+           alt="Success rate and solved-problem latency across six planners">
+      <figcaption>Success rate and solved-problem latency across the six planners.</figcaption>
+    </figure>
+    <p>pRRTC solves 785/800 problems (98.1%, all 785 feasible requests); wPA*SE solves 756/800 (94.5%) with a 3.0&nbsp;ms median on solved requests, compared with pRRTC's 11.0&nbsp;ms. These medians cover each planner's own solved subset. The per-scene view shows where the paradigms separate: <code>cage</code> is the strongest discriminator, while <code>table_under_pick</code> is especially difficult for unseeded local optimizers.</p>
+    <figure>
+      <img src="assets/results/mbm_scene_heatmap.png" width="1200" height="640"
+           alt="Per-scene planner success heatmap">
+      <figcaption>Per-scene planner success heatmap.</figcaption>
+    </figure>
+  </section>
+
+  <section id="demos">
+    <h2>Isaac Sim demos</h2>
+    <p class="sub">Eighteen time-parameterized trajectories across sampling, search, and optimization planners on Panda, Fetch, and Baxter.</p>
+    <p>The 52-second overview opens with nine trajectories, then shows Panda, Fetch, and Baxter in sequence, each with three scenes playing simultaneously in a three-panel layout.</p>
+    <figure>
+      <video controls preload="none" playsinline
+             poster="assets/prismplan-cover.png"
+             aria-label="Eighteen PrismPlan trajectories: a nine-panel overview followed by three scenes per robot, in Panda, Fetch, and Baxter order">
+        <source src="assets/video/prismplan_eighteen_trajectories.mp4" type="video/mp4">
+        Your browser cannot play this video.
+        <a href="assets/video/prismplan_eighteen_trajectories.mp4">Download the overview (MP4)</a>.
+      </video>
+      <figcaption>
+        Eighteen tasks · three planning paradigms · three robot models<br>
+        <a href="assets/video/prismplan_eighteen_trajectories.mp4">Overview (52&nbsp;s)</a> ·
+        <a href="assets/video/prismplan_demo.mp4">Full demo (2&nbsp;min 9&nbsp;s)</a>
+      </figcaption>
+    </figure>
+    <p>The full demo presents the first nine trajectories individually, followed by the same three views of Panda, Fetch, and Baxter, each showing three scenes simultaneously.</p>
+    <p>Isaac Sim is used for state and trajectory visualization. Benchmark timings and planner collision decisions come from PrismPlan; they are not Isaac physics-step timings.</p>
+  </section>
+
+  <section id="quickstart">
+    <h2>Quickstart</h2>
+    <p class="sub">Build the CUDA substrate, then drive all six planners from Python.</p>
+
+    <h3>Requirements</h3>
+    <ul class="clean">
+      <li>Linux with a CUDA-capable NVIDIA GPU</li>
+      <li>CMake 3.16 or newer, a C++17 compiler, and the CUDA toolkit with <code>nvcc</code></li>
+      <li>Eigen3 and pybind11 (2.13.6, including for Python 3.12)</li>
+      <li>Python 3 with NumPy, PyYAML, CUDA-enabled PyTorch, and Matplotlib</li>
+    </ul>
+    <p>The default CUDA architecture is <code>86</code> (Ampere). Override <code>CMAKE_CUDA_ARCHITECTURES</code> for another GPU; for example, use <code>120</code> for an RTX 5060 Ti with CUDA 13.2.</p>
+
+    <h3>Build</h3>
+<pre><code>python3 -m pip install pybind11==2.13.6
+
+cd code/gpu_planning
+cmake -S cpp -B cpp/build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPYTHON_EXECUTABLE="$(command -v python3)" \
+  -Dpybind11_DIR="$(python3 -m pybind11 --cmakedir)" \
+  -DCMAKE_CUDA_ARCHITECTURES=86
+cmake --build cpp/build --parallel
+
+export PYTHONPATH="$PWD/python:$PWD/cpp/build:${PYTHONPATH:-}"
+python3 examples/bench_6way.py --device cuda</code></pre>
+
+    <h3>Minimal Python example</h3>
+<pre><code>from gpu_planning import PRRTCPlanner, PlanningRequest, PlanningScene
+
+scene = PlanningScene.from_robot_asset("config/robots/panda.yaml", device="cuda")
+scene.add_cuboid("table", dims=(1.2, 1.2, 0.05), position=(0.5, 0.0, -0.1))
+scene.add_cuboid("box", dims=(0.1, 0.1, 0.4), position=(0.45, -0.2, 0.5))
+start = [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
+goal = [0.6, 0.35, -0.4, -1.9, 0.25, 1.95, 0.9]
+
+planner = PRRTCPlanner()
+planner.set_time_budget_ms(2000)
+if not planner.initialize(scene, asset_path="config/robots/panda.yaml"):
+    raise RuntimeError("Planner initialization failed; check the prrtc build and CUDA environment")
+try:
+    result = planner.plan(PlanningRequest(
+        robot_id="panda",
+        start_joint_state=start,
+        target_joint_state=goal,
+    ))
+finally:
+    planner.shutdown()
+
+print(result.success, result.status, result.solve_time, result.trajectory)</code></pre>
+
+    <h3>Run the benchmark</h3>
+    <p>The runner emits <code>trials.csv</code> and <code>summary.json</code>, recording the requested budget in <code>summary.config.budget_ms</code>. Pass <code>--budget-ms 2000</code> for the equal-budget comparison; without it, YAML defaults give pRRTC 4000&nbsp;ms and the other planners 1000&nbsp;ms. The bundled sample dataset checks the workflow and does not reproduce the 800-problem result.</p>
+<pre><code>cd code/gpu_planning
+
+python3 examples/bench_mbm.py \
+  --source vamp \
+  --path examples/data/sample_mbm_problems.json \
+  --budget-ms 2000 --trials 1 \
+  --out results/sample
+
+python3 examples/plot_mbm.py \
+  --indir results/sample \
+  --outdir results/sample/figures</code></pre>
+    <p>For the full Panda benchmark, install <a href="https://github.com/fishbotics/robometrics">fishbotics/robometrics</a>, which supplies the MotionBenchMaker datasets — the unrelated PyPI package of the same name does not provide <code>robometrics.datasets</code>. Details are in the <a href="benchmark.html">benchmark notes</a>.</p>
+  </section>
+
+  <section id="layout">
+    <h2>Repository layout</h2>
+<pre><code>PrismPlan/
+├── code/gpu_planning/
+│   ├── cpp/                 # CUDA/C++ substrate and pybind module
+│   ├── python/gpu_planning/ # unified Python interface and planner plugins
+│   ├── config/              # robot and planner configurations
+│   ├── examples/            # demos, benchmarks, and plotting tools
+│   ├── ros2/                # messages and ROS 2 planner node
+│   ├── tests/               # loader, benchmark, and validation checks
+│   └── tools/               # dataset and robot-asset utilities
+└── docs/assets/             # README figures and reviewed demo media</code></pre>
+  </section>
+
+  <section id="citation">
+    <h2>Citation and license</h2>
+<pre><code>@misc{prismplan,
+  author = {Wu, Hong and Liu, ChaoXuan and Wang, ShuJie},
+  title  = {PrismPlan: A Shared GPU Substrate for Motion Planning Across Paradigms},
+  year   = {2026},
+  note   = {Research software and manuscript}
+}</code></pre>
+    <p>The implementation is licensed under the <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan/blob/main/code/gpu_planning/LICENSE">Apache License 2.0</a>. See the accompanying <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan/blob/main/code/gpu_planning/NOTICE">NOTICE</a> for source provenance.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    PrismPlan · <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan">github.com/XiaoyubotMotionTeam/PrismPlan</a> ·
+    <a href="benchmark.html">Benchmark notes</a> ·
+    Apache-2.0
+  </div>
+</footer>
+
+</body>
+</html>

@@ -6,6 +6,8 @@
 
 **A shared GPU collision–kinematics substrate for sampling-, search-, and optimization-based motion planning.**
 
+🌐 **Project page: [xiaoyubotmotionteam.github.io/PrismPlan](https://xiaoyubotmotionteam.github.io/PrismPlan/)**
+
 PrismPlan exposes six planners through one runtime robot interface and reduces their collision and forward-kinematics workloads onto shared batched GPU primitives. Holding the robot model, obstacle representation, collision predicate, request, and time budget fixed makes cross-paradigm comparisons meaningful: the measured differences come from the planners rather than incompatible backends.
 
 ## Highlights
