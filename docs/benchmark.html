@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark provenance and reproduction — PrismPlan</title>
+<meta name="description" content="Provenance and reproduction protocol for the PrismPlan benchmark: 800 Robometrics MotionBenchMaker Panda problems, an equal 2000 ms budget per planner on an RTX 3060, per-planner success counts, and the exact commands to rerun and replot.">
+<link rel="canonical" href="https://xiaoyubotmotionteam.github.io/PrismPlan/benchmark.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PrismPlan">
+<meta property="og:title" content="Benchmark provenance and reproduction — PrismPlan">
+<meta property="og:description" content="The reference runs behind the PrismPlan figures, the per-planner success table, and the commands to reproduce them.">
+<meta property="og:url" content="https://xiaoyubotmotionteam.github.io/PrismPlan/benchmark.html">
+<meta property="og:image" content="https://xiaoyubotmotionteam.github.io/PrismPlan/assets/results/mbm_cross_paradigm.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xiaoyubotmotionteam.github.io/PrismPlan/assets/results/mbm_cross_paradigm.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 27 H3 Z' fill='none' stroke='%236366f1' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Benchmark provenance and reproduction",
+  "about": "PrismPlan GPU motion planning benchmark on MotionBenchMaker Panda problems",
+  "url": "https://xiaoyubotmotionteam.github.io/PrismPlan/benchmark.html",
+  "isPartOf": {"@type": "WebSite", "name": "PrismPlan", "url": "https://xiaoyubotmotionteam.github.io/PrismPlan/"},
+  "author": [
+    {"@type": "Person", "name": "Hong Wu"},
+    {"@type": "Person", "name": "ChaoXuan Liu"},
+    {"@type": "Person", "name": "ShuJie Wang"}
+  ]
+}
+</script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./">PrismPlan</a>
+    <nav>
+      <a href="./#how">How it works</a>
+      <a href="./#results">Results</a>
+      <a href="./#demos">Demos</a>
+      <a href="./#quickstart">Quickstart</a>
+      <a href="benchmark.html">Benchmark</a>
+      <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero" style="text-align:left;padding:48px 0 8px">
+    <h1 style="font-size:clamp(28px,4.4vw,40px)">Benchmark provenance and reproduction</h1>
+    <p class="lede" style="margin-left:0;text-align:left">The figures on the home page reflect the manuscript and artifacts at source revision <code>c9e9014c7eb6198f28e0b81b23c5ab870caa529d</code> (2026-09-16). They were regenerated from the recorded run, not from a new benchmark on the release maintainer's machine. This source release includes the benchmark and plotting tools and the README images; it excludes the manuscript, full datasets, and raw run outputs.</p>
+  </div>
+
+  <section id="reference-runs">
+    <h2>Reference runs</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Run identifier</th><th>Protocol</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>mbm_800_flag</code></td>
+            <td>Panda, 800 Robometrics MotionBenchMaker problems, 1 trial per planner/problem, 2000&nbsp;ms per planner, RTX 3060</td>
+            <td>Paper's main Panda comparison and both result figures</td>
+          </tr>
+          <tr>
+            <td><code>mbm_800_1s</code></td>
+            <td>Same dataset and implementation, 1000&nbsp;ms per planner</td>
+            <td>Budget-sensitivity control</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The older <code>mbm_800</code> run predates the removal of restrictive iteration caps and is not the paper's one-second control. Its results must not be substituted for either reference run.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Planner</th><th class="num">Solved / 800</th><th class="num">Overall success</th><th class="num">Median solve time on solved problems (ms)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>pRRTC</td><td class="num">785</td><td class="num">98.1%</td><td class="num">11.0</td></tr>
+          <tr><td>MIT*</td><td class="num">616</td><td class="num">77.0%</td><td class="num">2008.8</td></tr>
+          <tr><td>MHA*</td><td class="num">722</td><td class="num">90.2%</td><td class="num">3.4</td></tr>
+          <tr><td>wPA*SE</td><td class="num">756</td><td class="num">94.5%</td><td class="num">3.0</td></tr>
+          <tr><td>STOMP</td><td class="num">617</td><td class="num">77.1%</td><td class="num">18.9</td></tr>
+          <tr><td>CHOMP</td><td class="num">80</td><td class="num">10.0%</td><td class="num">3.7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Fifteen goals are already in collision. Overall success uses all 800 problems; feasible success uses 785. Timing medians use each planner's own successful requests, not a common solved subset. A configured time limit is a termination budget, not a hard real-time deadline: measured latency can exceed it slightly. The synchronized trajectory videos use separate individual runs and are qualitative demonstrations, not this equal-budget aggregate experiment.</p>
+  </section>
+
+  <section id="run-and-plot">
+    <h2>Run and plot</h2>
+    <p>Build the CUDA module and set <code>PYTHONPATH</code> as described in the <a href="./#quickstart">quickstart</a>. The full Panda dataset requires <a href="https://github.com/fishbotics/robometrics">fishbotics/robometrics</a> with its <code>geometrout</code> dependency, not the unrelated PyPI package with the same name. Install it in the active environment. From <code>code/gpu_planning</code>:</p>
+<pre><code>python3 -m pip install "git+https://github.com/fishbotics/robometrics.git@81e3d1d605de84100d8ab880b43096aba221a48b" geometrout
+
+python3 examples/bench_mbm.py \
+  --source robometrics --dataset mbm \
+  --budget-ms 2000 --trials 1 --out results/mbm_800_flag
+
+python3 examples/plot_mbm.py \
+  --indir results/mbm_800_flag --outdir results/mbm_800_flag/figures</code></pre>
+    <p>The runner writes <code>trials.csv</code> and <code>summary.json</code>; the latter records <code>config.budget_ms</code>. Omitting <code>--budget-ms</code> preserves per-planner YAML defaults (4000&nbsp;ms for pRRTC, 1000&nbsp;ms for the others) and records <code>null</code>, which is not an equal-budget run. Use 1000&nbsp;ms and a separate output directory for the control. Check that the full Panda run loads 800 problems. The bundled three-problem sample checks the workflow only.</p>
+    <p>The plotting scripts depend on NumPy and Matplotlib and can run without CUDA. Both import the adjacent <code>paperstyle.py</code>, which keeps their palette and typography consistent. To export a new run's figures as README PNGs, use Poppler from the same directory:</p>
+<pre><code>for name in mbm_cross_paradigm mbm_scene_heatmap; do
+  pdftocairo -png -r 240 -singlefile \
+    "results/mbm_800_flag/figures/$name.pdf" \
+    "../../docs/assets/results/$name"
+done</code></pre>
+    <p>When replacing the reference images with a new run, update this provenance and the README numbers together. Hardware, host load, and stochastic execution can change the exact success counts and timings; a rerun should not be presented as the original recorded experiment.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    PrismPlan · <a href="https://github.com/XiaoyubotMotionTeam/PrismPlan">github.com/XiaoyubotMotionTeam/PrismPlan</a> ·
+    <a href="./">Home</a> ·
+    Apache-2.0
+  </div>
+</footer>
+
+</body>
+</html>
